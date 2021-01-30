@@ -6,6 +6,8 @@ import calendar
 import pprint
 import os
 
+TOKEN = None
+
 base_url = 'https://api.twitter.com/'
 auth_url = '{}oauth2/token'.format(base_url)
 show_url = '{}1.1/statuses/show.json'.format(base_url)
@@ -27,11 +29,18 @@ def get_bearer_token(consumer_key=os.environ['CONSUMER_KEY'], consumer_secret=os
     return to_json['access_token'] if response.status_code == 200 else None
 
 
+def authenticate():
+    global TOKEN
+    TOKEN = get_bearer_token()
+
+
 def get_id_from_url(url):
     return url.strip().split('/')[-1]
 
 
-def get_tweet_by_id(id, access_token):
+def get_tweet_by_id(id, access_token=None):
+    if access_token is None:
+        access_token = TOKEN
     header = {
         'Authorization': 'Bearer {}'.format(access_token),
     }
@@ -69,11 +78,11 @@ def process_tweet(tweet):
 
 
 def main():
-    access_token = get_bearer_token()
+    authenticate()
     user_input = input('What tweet to show? ')
     while user_input != 'exit':
         res = get_id_from_url(user_input)
-        tweet = get_tweet_by_id(res, access_token)
+        tweet = get_tweet_by_id(res)
         print(process_tweet(tweet))
         user_input = input('What tweet to show? ')
 
