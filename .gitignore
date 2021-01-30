@@ -128,6 +128,8 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+
 .ds_store
 HoyaHacks-9c9bfc3271f3.json
 HoyaHacks-df4598fcd39e.json
+.idea/
