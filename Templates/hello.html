@@ -1,0 +1,125 @@
+<html>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<head>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+          integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <!-- Bootstrap JS -->
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+            integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+            crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+            integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+            crossorigin="anonymous"></script>
+</head>
+<body style="background-color: #15202B; color: white">
+<div class="jumbotron" style="background-color: #1DA1F2">
+    <h1 id="head" style="text-align: center; margin-top: 15px; margin-bottom:30px">
+        NewsTrust
+    </h1>
+</div>
+
+<form id="twitterInput" style="text-align: center">
+    <label for="fname"><h4 style="margin-right:10px">Twitter Status:</h4></label>
+    <input type="text" id="twitstat" name="twitstat" value={{request.form.twitstat}}><br><br>
+</form>
+<div style="text-align: center">
+    <button id="button1" style="margin-bottom:25px" class="btn btn-primary btn-lg">Check My Tweet!</button>
+</div>
+
+<center>
+    <div id="spinner" class="spinner-border text-primary" role="status" style="display:none;margin-bottom:25px">
+        <span class="visually-hidden"></span>
+    </div>
+</center>
+<div id="details" style="text-align: center; margin: auto; width: 60%;display:none">
+    <h3 id="score">
+        Score:
+    </h3>
+    <h3>
+        Wikipedia: <a id="wiki" href="" target="_blank"></a>
+    </h3>
+    <h3 style="margin-bottom:25px">
+        Politifact: <a id="pf" href="" target="_blank"></a>
+    </h3>
+</div>
+<div id="results" class="row" style="text-align:center; margin:auto; display: none">
+    <ul id="good" class="list-group list-group-vertical justify-content-center" style="text-align: center; margin:auto; width:50%">
+    </ul>
+
+    <ul id="bad" class="list-group list-group-vertical-sm justify-content-center" style="text-align: center; margin:auto; width:50%">
+    </ul>
+</div>
+</body>
+
+<script type="text/javascript">
+    button = document.getElementById("button1");
+    input = document.getElementById("twitstat");
+
+    function getTwitterData() {
+        document.getElementById("spinner").style.display = "block";
+        $.ajax({
+            url: "getTwitterData",
+            type: "get",                     // use a 'get' type request
+            data: $('#twitterInput').serialize(), //serialize form and pass to server
+            success: function (response) {
+                console.log(response);
+                console.log("success");
+                document.getElementById("spinner").style.display = "none";
+                document.getElementById("results").style.display = "block";
+                document.getElementById("details").style.display = "block";
+
+                document.getElementById("score").innerText = "Score: " + response.score.toFixed(2);
+                wiki = document.getElementById("wiki");
+                if (response.wiki[1] !== "") {
+                    wiki.href = response.wiki[0];
+                    wiki.innerText = "Author's Wikipedia Page"
+                } else {
+                    wiki.href = "";
+                    wiki.innerText = "Author Not Verified";
+                }
+                pf = document.getElementById("pf");
+                pf.href = response.politifact[1];
+                pf.innerText = response.politifact[0];
+
+                // Messages
+                goodParent = document.getElementById("good");
+                goodParent.innerHTML = '<li class="list-group-item justify-content-center list-group-item-success"><h3>Good</h3></li>';
+                response.messages.g.forEach(element => {
+                    li = document.createElement("li");
+                    li.className = "list-group-item justify-content-center list-group-item-success";
+                    li.innerText = element;
+                    goodParent.append(li);
+                });
+                if (response.messages.g.length === 0) {
+                    li = document.createElement("li");
+                    li.className = "list-group-item justify-content-center list-group-item-success";
+                    li.innerText = "None!";
+                    goodParent.append(li);
+                }
+
+                badParent = document.getElementById("bad");
+                badParent.innerHTML = '<li class="list-group-item justify-content-center list-group-item-danger"><h3>Bad</h3></li>';
+                response.messages.b.forEach(element => {
+                    li = document.createElement("li");
+                    li.className = "list-group-item justify-content-center list-group-item-danger";
+                    li.innerText = element;
+                    badParent.append(li);
+                });
+                if (response.messages.b.length === 0) {
+                    li = document.createElement("li");
+                    li.className = "list-group-item justify-content-center list-group-item-danger";
+                    li.innerText = "None!";
+                    badParent.append(li);
+                }
+            },
+            error: function (stat, err) {
+                console.log(stat)
+            }
+        });
+    }
+
+    button.onclick = getTwitterData
+</script>
+</html>

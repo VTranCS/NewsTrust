@@ -54,6 +54,30 @@ def scores_from_raw(raw_values):
     return to_ret
 
 
+def generate_messages(raw_scores):
+    messages = {'g': [], 'b': []}
+    if raw_scores['verified'] == 5:
+        messages['g'].append('The account is verified on Twitter.')
+    else:
+        messages['b'].append('The account is not verified on Twitter.')
+
+    if raw_scores['likes'] < 2 or raw_scores['likes'] < 2:
+        messages['b'].append('This tweet has very little interaction.')
+
+    if raw_scores['written'] == 5:
+        messages['g'].append('This tweet was written recently (within the last month).')
+    else:
+        messages['b'].append('This tweet may be out of date and not reflect current conditions.')
+
+    if raw_scores['created'] < 5:
+        messages['b'].append('The account was created recently. Take care if it is not verified as they may be a bot.')
+
+    if raw_scores['magnitude'] < 2.5:
+        messages['b'].append('Tone of this tweet includes overly emotional language that may be trying to appeal to pathos.')
+
+    return messages
+
+
 def aggregate(raw_scores):
     complexity = 7.44 * raw_scores['compx']
     capitalization = 6.46 * raw_scores['cap']
@@ -71,10 +95,12 @@ def aggregate(raw_scores):
 
 
 def process_tweet_url(url):
+    tw.authenticate()
     res = tw.get_id_from_url(url)
     tweet = tw.get_tweet_by_id(res)
     raw_values = tw.process_tweet(tweet)
     raw_scores = scores_from_raw(raw_values)
+    msgs = generate_messages(raw_scores)
     aggregate_score = aggregate(raw_scores)
     pf_url = Search.build_politifact_url_from_tweet(tweet)
     pf = Search.scrape_politifact(pf_url)
@@ -85,7 +111,7 @@ def process_tweet_url(url):
         wiki = (wiki_lnk, wiki_title)
     else:
         wiki = ('Could Not Find A Link', '')
-    return {'score': aggregate_score, 'wiki': wiki, 'politifact': pf}
+    return {'score': aggregate_score, 'raw_score': raw_scores, 'messages': msgs, 'wiki': wiki, 'politifact': pf}
 
 
 def main():
