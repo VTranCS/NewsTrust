@@ -65,6 +65,8 @@ def process_tweet(tweet):
     to_ret['verified'] = bool(tweet['user']['verified'])
     # Length of tweet (weight low)
     to_ret['length'] = len(tweet['full_text'])
+    # Raw text
+    to_ret['text'] = tweet['full_text']
     # Date
     date_format = '%a %b %d %H:%M:%S %z %Y'
     written_date = tweet['created_at']
@@ -74,6 +76,8 @@ def process_tweet(tweet):
     created_date = tweet['user']['created_at']
     created = datetime.datetime.strptime(created_date, date_format)
     to_ret['created'] = calendar.timegm(created.timetuple())
+    # Author name
+    to_ret['author'] = tweet['user']['name']
     return to_ret
 
 

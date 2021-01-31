@@ -1,6 +1,9 @@
 import Twitter as tw
 import math
 import time
+import sentimentTest as st
+import sentenceAnalysis as sa
+import Search
 
 MONTH_LENGTH = 2.628e6
 
@@ -14,8 +17,8 @@ def scores_from_raw(raw_values):
     retweets = raw_values['retweets']
     likes = raw_values['likes']
 
-    retweet_score = max(0.0, min(5.0, 1.55 * math.log(retweets / 20)))
-    like_score = max(0.0, min(5.0, 1.278 * math.log(retweets / 20)))
+    retweet_score = max(0.0, min(5.0, 1.55 * math.log((1 + retweets) / 20)))
+    like_score = max(0.0, min(5.0, 1.278 * math.log((1 + likes) / 20)))
 
     to_ret['retweets'] = retweet_score
     to_ret['likes'] = like_score
@@ -37,7 +40,34 @@ def scores_from_raw(raw_values):
     diff = time_now - time_created
     old_account = diff > MONTH_LENGTH
     to_ret['created'] = 5 if old_account else diff / MONTH_LENGTH * 5
+
+    # Sentiment analysis
+    text = raw_values['text']
+    direction, mag = st.sentimentDetection(text)
+    to_ret['direction'] = direction
+    to_ret['magnitude'] = mag
+
+    # Sentence Analysis
+    to_ret['cap'] = sa.capitalization(text)
+    to_ret['compx'] = sa.sentenceComplexity(text)
+    to_ret['misspell'] = sa.mispells(text)
     return to_ret
+
+
+def aggregate(raw_scores):
+    complexity = 7.44*raw_scores['compx']
+    capitalization = 6.46*raw_scores['cap']
+    spelling = 6.46*raw_scores['misspell']
+    hashtags = 7.96*raw_scores['hashtags']
+    retweets = 2.97*raw_scores['retweets']
+    likes = 2.97*raw_scores['likes']
+    verified = 13.93*raw_scores['verified']
+    length = 4.97*raw_scores['length']
+    written = 7.96*raw_scores['written']
+    created = 10.94*raw_scores['created']
+    magnitude = 27.94*raw_scores['magnitude']
+    scores = [complexity, capitalization, spelling, hashtags, retweets, likes, verified, length, written, created, magnitude]
+    return max(0, (sum(scores)/100-3)*5/2)
 
 
 def main():
@@ -50,6 +80,9 @@ def main():
         print(raw_values)
         raw_scores = scores_from_raw(raw_values)
         print(raw_scores)
+        print(aggregate(raw_scores))
+        url = Search.build_url_from_tweet(tweet)
+        Search.scrape_page(url)
         user_input = input('What tweet to show? ')
 
 
