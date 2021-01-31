@@ -55,34 +55,45 @@ def scores_from_raw(raw_values):
 
 
 def aggregate(raw_scores):
-    complexity = 7.44*raw_scores['compx']
-    capitalization = 6.46*raw_scores['cap']
-    spelling = 6.46*raw_scores['misspell']
-    hashtags = 7.96*raw_scores['hashtags']
-    retweets = 2.97*raw_scores['retweets']
-    likes = 2.97*raw_scores['likes']
-    verified = 13.93*raw_scores['verified']
-    length = 4.97*raw_scores['length']
-    written = 7.96*raw_scores['written']
-    created = 10.94*raw_scores['created']
-    magnitude = 27.94*raw_scores['magnitude']
+    complexity = 7.44 * raw_scores['compx']
+    capitalization = 6.46 * raw_scores['cap']
+    spelling = 6.46 * raw_scores['misspell']
+    hashtags = 7.96 * raw_scores['hashtags']
+    retweets = 2.97 * raw_scores['retweets']
+    likes = 2.97 * raw_scores['likes']
+    verified = 13.93 * raw_scores['verified']
+    length = 4.97 * raw_scores['length']
+    written = 7.96 * raw_scores['written']
+    created = 10.94 * raw_scores['created']
+    magnitude = 27.94 * raw_scores['magnitude']
     scores = [complexity, capitalization, spelling, hashtags, retweets, likes, verified, length, written, created, magnitude]
-    return max(0, (sum(scores)/100-3)*5/2)
+    return max(0, (sum(scores) / 100 - 3) * 5 / 2)
+
+
+def process_tweet_url(url):
+    res = tw.get_id_from_url(url)
+    tweet = tw.get_tweet_by_id(res)
+    raw_values = tw.process_tweet(tweet)
+    raw_scores = scores_from_raw(raw_values)
+    aggregate_score = aggregate(raw_scores)
+    pf_url = Search.build_politifact_url_from_tweet(tweet)
+    pf = Search.scrape_politifact(pf_url)
+    if tweet['user']['verified']:
+        gl_url = Search.build_google_url_from_tweet(tweet)
+        wiki_lnk = Search.scrape_author(gl_url)
+        wiki_title = 'Wikipedia'
+        wiki = (wiki_lnk, wiki_title)
+    else:
+        wiki = ('Could Not Find A Link', '')
+    return {'score': aggregate_score, 'wiki': wiki, 'politifact': pf}
 
 
 def main():
     tw.authenticate()
     user_input = input('What tweet to show? ')
     while user_input != 'exit':
-        res = tw.get_id_from_url(user_input)
-        tweet = tw.get_tweet_by_id(res)
-        raw_values = tw.process_tweet(tweet)
-        print(raw_values)
-        raw_scores = scores_from_raw(raw_values)
-        print(raw_scores)
-        print(aggregate(raw_scores))
-        url = Search.build_url_from_tweet(tweet)
-        Search.scrape_page(url)
+        res = process_tweet_url(user_input)
+        print(res)
         user_input = input('What tweet to show? ')
 
 

@@ -25,15 +25,18 @@ def scrape_politifact(url):
     source = soup.find_all(class_="c-textgroup__title")[0].find('a')
     title = source.get_text().strip()
     lnk = 'https://www.politifact.com' + source['href']
-    print(title)
-    print(lnk)
+    # print(title)
+    # print(lnk)
+    return title, lnk
 
 
 def scrape_author(url):
     page = requests.get(url)
     soup = BeautifulSoup(page.content, 'html.parser')
     wiki = soup.find('a', href=re.compile('/url\?q=https://en.wikipedia.org/'))
-    print(wiki['href'].split('&')[0][7:])
+    lnk = wiki['href'].split('&')[0][7:]
+    # print(lnk)
+    return lnk
 
 
 def main():
