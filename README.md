@@ -7,7 +7,7 @@ A lot of people use Twitter for connecting with friends, following new trends, a
 NewsTrust takes in a Twitter status and provides a score on the trustworthiness using 11 different criteria that focus on the metadata of the tweet (whether the user is verified, creation date of account and tweet, etc...) and sentence structure (Complexity of sentences, grammatical correctness  & sentiment analysis) . We then provide cross-validation materials such as links to PolitiFact to verify the facts in tweets. We then describe what significant values in the metrics led to the score (which metrics scored significantly low or high). 
 
 
-![Example 1](img/newTrustSample.png)
+![Example 1](img/newsTrustSample.png)
 ## How we built it
 
 We used the Twitter API to pull user data and then parsed it, creating different metrics and then weighting metrics on both importance and accuracy. We also used the Google Cloud Platform's sentiment analysis to detect how much emotion was used in each tweet. We analyzed the structure of the tweet, taking into account sentence complexity, capitalization usage, and spelling.  We used Flask to create a front-end that plugged into our back-end and made it very similar to Twitter aesthetic. 
